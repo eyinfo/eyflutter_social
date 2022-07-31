@@ -3,23 +3,29 @@ version '1.0'
 
 buildscript {
     repositories {
+        maven { url "https://maven.aliyun.com/repository/public" }
+        maven { url "http://mvn.mob.com/android" }
         google()
         mavenCentral()
     }
 
     dependencies {
         classpath 'com.android.tools.build:gradle:4.1.0'
+        classpath "com.mob.sdk:MobSDK:2018.0319.1724"
     }
 }
 
 rootProject.allprojects {
     repositories {
+        maven { url "https://maven.aliyun.com/repository/public" }
+        maven { url "http://mvn.mob.com/android" }
         google()
         mavenCentral()
     }
 }
 
 apply plugin: 'com.android.library'
+apply plugin: 'com.mob.sdk'
 
 android {
     compileSdkVersion 31
@@ -30,6 +36,42 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 21
+        targetSdkVersion 31
     }
+
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+    dexOptions {
+        jumboMode = true
+        preDexLibraries = true
+        javaMaxHeapSize "4g"
+    }
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+}
+
+//这里必须添加对应结构，否则对应sdk无法下载
+//具体的appId和appKey在代码中设置
+MobSDK {
+    ShareSDK {
+        loopShare false
+        devInfo {
+            SinaWeibo {}
+            Wechat {}
+            QQ {}
+            WechatMoments {}
+            WechatFavorite {}
+            QZone {}
+        }
+    }
+}
+
+dependencies {
+    api fileTree(include: ['*.jar'], dir: 'libs')
+    api 'com.tencent.mm.opensdk:wechat-sdk-android-without-mta:+'
 }

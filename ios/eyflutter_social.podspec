@@ -16,6 +16,15 @@ eyinfo social plug in
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
   s.platform = :ios, '9.0'
+  s.dependency 'eyflutter_core'
+  s.dependency 'eyflutter_uikit'
+  s.dependency 'mob_sharesdk'
+  s.dependency 'mob_sharesdk/ShareSDKPlatforms/QQ'
+  s.dependency 'mob_sharesdk/ShareSDKPlatforms/SinaWeibo'
+  s.dependency 'mob_sharesdk/ShareSDKPlatforms/WeChatFull'
+  s.dependency 'mob_sharesdk/ShareSDKExtension'
+  s.dependency 'AlipaySDK-iOS'
+  s.static_framework = true
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }

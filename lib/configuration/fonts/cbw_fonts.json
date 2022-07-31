@@ -1,0 +1,38 @@
+{
+  "fontName": "cbw_fonts",
+  "icons": [
+    {
+      "name": "wechat",
+      "code": "0xe63c",
+      "des": "微信"
+    },
+    {
+      "name": "moments",
+      "code": "0xe7be",
+      "des": "朋友圈"
+    },
+    {
+      "name": "qq",
+      "code": "0xe637"
+    },
+    {
+      "name": "qzone",
+      "code": "0xe6e4"
+    },
+    {
+      "name": "weibo",
+      "code": "0xe73c",
+      "des": "新浪微博"
+    },
+    {
+      "name": "wechatPay",
+      "code": "0xe636",
+      "des": "微信支付"
+    },
+    {
+      "name": "aliPay",
+      "code": "0xe641",
+      "des": "支付宝支付"
+    }
+  ]
+}
