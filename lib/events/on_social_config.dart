@@ -1,4 +1,4 @@
-mixin SocialConfigEvent {
+mixin OnSocialConfig {
   String mobAppKey();
 
   String mobAppSecret();

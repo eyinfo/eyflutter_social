@@ -1,7 +1,9 @@
 import 'package:eyflutter_core/eyflutter_core.dart';
 import 'package:eyflutter_social/beans/share_info.dart';
+import 'package:eyflutter_social/beans/share_properties.dart';
 import 'package:eyflutter_social/enums/share_platform.dart';
 import 'package:eyflutter_social/enums/share_status.dart';
+import 'package:eyflutter_social/events/on_social_config.dart';
 import 'package:eyflutter_social/events/share_info_collect.dart';
 import 'package:eyflutter_social/share/share_widget.dart';
 import 'package:eyflutter_uikit/eyflutter_uikit.dart';
@@ -23,41 +25,50 @@ class ShareDialog {
     return _instance ??= ShareDialog._internal();
   }
 
-  YYDialog? _dialog;
-
   /// 显示分享弹窗
   /// [context] 构建上下文
   /// [platforms] 允许展示的分享平台
   /// [shareInfoCall] 分享信息回调
   /// [title] 组件标题
-  void show(BuildContext context,
-      {List<SharePlatform> platforms = SharePlatform.values, ShareInfoCollect? shareInfoCall, String? title}) {
-    if (!_dialog?.isShowing) {
+  void show({
+    required BuildContext context,
+    required List<SharePlatform> platforms,
+    required ShareInfoCollect shareInfoCall,
+    required OnSocialConfig socialConfig,
+    ShareProperties? properties,
+  }) {
+    if (!(_dialog?.isShowing ?? false)) {
+      properties ??= ShareProperties();
       _dialog = YYDialog().build(context)
         ..gravity = Gravity.bottom
         ..backgroundColor = Colors.transparent
         ..barrierDismissible = false
-        ..widget(_buildShareView(platforms, shareInfoCall, title ?? ""))
+        ..borderRadius = const BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+        ..widget(_buildShareView(platforms, shareInfoCall, properties, socialConfig))
         ..show();
     }
   }
 
-  Widget _buildShareView(List<SharePlatform> platforms, ShareInfoCollect? shareInfoCall, String title) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ShareWidget(
-          cancelCall: dismiss,
-          shareCall: _shareClick,
-          isClickCheck: true,
-          platforms: _getPlatforms(platforms),
-          title: title,
-          shareInfoCall: shareInfoCall,
-          dismissCall: () {
-            dismiss();
-          },
-        )
-      ],
+  YYDialog? _dialog;
+
+  Widget _buildShareView(
+    List<SharePlatform> platforms,
+    ShareInfoCollect shareInfoCall,
+    ShareProperties? properties,
+    OnSocialConfig socialConfig,
+  ) {
+    return ShareWidget(
+      cancelCall: dismiss,
+      shareCall: _shareClick,
+      isClickCheck: true,
+      platforms: _getPlatforms(platforms),
+      shareInfoCall: shareInfoCall,
+      backgroundColor: Colors.white,
+      properties: properties,
+      socialConfig: socialConfig,
+      dismissCall: () {
+        dismiss();
+      },
     );
   }
 
@@ -71,7 +82,7 @@ class ShareDialog {
 
   /// 销毁分享弹窗
   void dismiss() {
-    if (_dialog?.isShowing) {
+    if (_dialog?.isShowing ?? false) {
       _dialog?.dismiss();
     }
     _dialog = null;

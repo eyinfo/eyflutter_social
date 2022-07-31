@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   eyflutter_core: ^0.0.5+3
-  eyflutter_uikit: ^0.0.4
+  eyflutter_uikit: ^0.0.4+1
 
 dev_dependencies:
   flutter_test:

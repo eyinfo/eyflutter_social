@@ -1,10 +1,11 @@
 import 'package:eyflutter_core/eyflutter_core.dart';
 import 'package:eyflutter_social/beans/share_info.dart';
+import 'package:eyflutter_social/beans/share_properties.dart';
 import 'package:eyflutter_social/configuration/fonts/cbw_fonts.dart';
 import 'package:eyflutter_social/enums/share_platform.dart';
 import 'package:eyflutter_social/enums/share_status.dart';
+import 'package:eyflutter_social/events/on_social_config.dart';
 import 'package:eyflutter_social/events/share_info_collect.dart';
-import 'package:eyflutter_social/social_manager.dart';
 import 'package:eyflutter_uikit/eyflutter_uikit.dart';
 import 'package:flutter/material.dart';
 
@@ -16,9 +17,6 @@ typedef _OnItemTextIconClick = void Function(BuildContext context, dynamic extra
 class ShareWidget extends StatefulWidget {
   /// 分享组件背景颜色
   final Color backgroundColor;
-
-  /// 分享组件标题
-  final String title;
 
   /// 分享取消
   final OnShareCancelCall? cancelCall;
@@ -39,16 +37,22 @@ class ShareWidget extends StatefulWidget {
   /// 分享销毁回调
   final OnShareDismissCall? dismissCall;
 
+  /// 组件属性
+  final ShareProperties? properties;
+
+  final OnSocialConfig socialConfig;
+
   const ShareWidget({
     Key? key,
     this.backgroundColor = const Color(0xf5f7f7f7),
-    required this.title,
     this.cancelCall,
     required this.shareCall,
     this.isClickCheck = false,
     required this.platforms,
     this.shareInfoCall,
     this.dismissCall,
+    this.properties,
+    required this.socialConfig,
   }) : super(key: key);
 
   @override
@@ -56,7 +60,7 @@ class ShareWidget extends StatefulWidget {
 }
 
 class _ShareWidgetState extends State<ShareWidget> {
-  double itemHeight = 84;
+  double itemHeight = 96;
   final String shareChannelMethodName = "1964acb974df863f";
   final String initSocialMethodName = "1f4482ba6ba89bbe";
 
@@ -71,9 +75,9 @@ class _ShareWidgetState extends State<ShareWidget> {
         padding: const EdgeInsets.only(left: 0, top: 12, right: 0, bottom: 12),
         alignment: Alignment.center,
         child: Text(
-          widget.title,
+          widget.properties?.dialogTitle ?? "",
           maxLines: 1,
-          style: const TextStyle(color: Color(0xff888888), fontSize: 14),
+          style: const TextStyle(color: Color(0xff292929), fontSize: 14),
         ),
       ),
       children: [
@@ -81,29 +85,48 @@ class _ShareWidgetState extends State<ShareWidget> {
           height: itemHeight,
           rowPadding: const EdgeInsets.only(left: 0, top: 0, right: 0, bottom: 8),
           children: [
-            _buildItem(SharePlatform.weixin, _buildIcon(CbwFonts.wechat, const Color(0xff28C445)), "微信好友"),
-            _buildItem(SharePlatform.moments, _buildIcon(CbwFonts.moments, const Color(0xff28C445)), "朋友圈"),
-            _buildItem(SharePlatform.qq, _buildIcon(CbwFonts.qq, const Color(0xff46B7FF)), "QQ好友"),
-            _buildItem(SharePlatform.qzone, _buildIcon(CbwFonts.qzone, const Color(0xffFDAD14)), "QQ空间"),
-            _buildItem(SharePlatform.weibo, _buildIcon(CbwFonts.weibo, const Color(0xffFC5733)), "新浪微博"),
+            _buildItem(SharePlatform.weixin, _buildIcon(CbwFonts.wechat, const Color(0xff28C445)),
+                widget.properties?.weiXinText ?? ""),
+            _buildItem(SharePlatform.moments, _buildIcon(CbwFonts.moments, const Color(0xff28C445)),
+                widget.properties?.momentsText ?? ""),
+            _buildItem(
+                SharePlatform.qq, _buildIcon(CbwFonts.qq, const Color(0xff46B7FF)), widget.properties?.qqText ?? ""),
+            _buildItem(SharePlatform.qzone, _buildIcon(CbwFonts.qzone, const Color(0xffFDAD14)),
+                widget.properties?.qZoneText ?? ""),
+            _buildItem(SharePlatform.weibo, _buildIcon(CbwFonts.weibo, const Color(0xffFC5733)),
+                widget.properties?.weiboText ?? ""),
           ],
         )
       ],
-      bottomContainer: GestureDetector(
-        child: Container(
-          height: 60,
-          alignment: Alignment.center,
-          color: Colors.white,
-          child: const Text(
-            "取消",
-            style: TextStyle(color: Color(0xff157efb), fontSize: 18),
+      bottomContainer: Container(
+        margin: const EdgeInsets.only(left: 20, top: 8, right: 20, bottom: 10),
+        child: TextButton(
+          child: Container(
+            width: double.infinity,
+            height: 42,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              border: Border.all(color: const Color(0xffE8E8ED), width: 0.8),
+              borderRadius: const BorderRadius.all(Radius.circular(30)),
+            ),
+            child: Text(
+              widget.properties?.cancelButtonText ?? "",
+              style: const TextStyle(color: Color(0xff060606), fontSize: 18),
+            ),
+          ),
+          onPressed: () {
+            if (widget.cancelCall != null) {
+              widget.cancelCall!();
+            }
+          },
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(Colors.transparent),
+            minimumSize: MaterialStateProperty.all(Size.zero),
+            padding: MaterialStateProperty.all(EdgeInsets.zero),
+            shape: MaterialStateProperty.all(
+                const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(30)))),
           ),
         ),
-        onTap: () {
-          if (widget.cancelCall != null) {
-            widget.cancelCall!();
-          }
-        },
       ),
     );
   }
@@ -122,19 +145,17 @@ class _ShareWidgetState extends State<ShareWidget> {
 
   Widget _buildItem(SharePlatform platform, Widget child, String text) {
     return _TextIconWidget(
-      width: 86,
-      height: itemHeight,
       extra: platform.toString().suffixName,
       isVisible: _visibilityBuildItem(platform),
       backgroundColor: widget.backgroundColor,
       drawViews: [
         Padding(
-          padding: const EdgeInsets.only(left: 0, top: 0, right: 0, bottom: 10),
+          padding: const EdgeInsets.only(left: 0, top: 0, right: 0, bottom: 8),
           child: child,
         ),
         Text(
           text,
-          style: const TextStyle(color: Color(0xff888888), fontSize: 12),
+          style: const TextStyle(color: Color(0xff3D3C3D), fontSize: 12),
         ),
       ],
       itemClick: (context, platform) {
@@ -148,7 +169,7 @@ class _ShareWidgetState extends State<ShareWidget> {
         }
         widget.shareCall(context, shareInfo, ShareStatus.click);
         try {
-          Loadings.instance.show(context, text: "分享处理中");
+          Loadings.instance.show(context, text: widget.properties?.loadingText ?? "");
           shareInfo.platform = platform;
           CloudChannelManager.instance.send(initSocialMethodName, arguments: getInitConfig()).then((value) {
             if (value == "success") {
@@ -185,21 +206,17 @@ class _ShareWidgetState extends State<ShareWidget> {
   }
 
   Map<String, dynamic> getInitConfig() {
-    var configInfo = SocialManager.instance.configInfo;
-    if (configInfo == null) {
-      return {};
-    }
     Map<String, dynamic> configMap = {};
-    configMap["mobAppKey"] = configInfo.mobAppKey();
-    configMap["mobAppSecret"] = configInfo.mobAppSecret();
-    configMap["sinaAppKey"] = configInfo.sinaAppKey();
-    configMap["sinaAppSecret"] = configInfo.sinaAppSecret();
-    configMap["sinaRedirectUrl"] = configInfo.sinaRedirectUrl();
-    configMap["wechatAppId"] = configInfo.wechatAppId();
-    configMap["wechatAppSecret"] = configInfo.wechatAppSecret();
-    configMap["wechatUniversalLink"] = configInfo.wechatUniversalLink();
-    configMap["qqAppId"] = configInfo.qqAppId();
-    configMap["qqAppKey"] = configInfo.qqAppKey();
+    configMap["mobAppKey"] = widget.socialConfig.mobAppKey();
+    configMap["mobAppSecret"] = widget.socialConfig.mobAppSecret();
+    configMap["sinaAppKey"] = widget.socialConfig.sinaAppKey();
+    configMap["sinaAppSecret"] = widget.socialConfig.sinaAppSecret();
+    configMap["sinaRedirectUrl"] = widget.socialConfig.sinaRedirectUrl();
+    configMap["wechatAppId"] = widget.socialConfig.wechatAppId();
+    configMap["wechatAppSecret"] = widget.socialConfig.wechatAppSecret();
+    configMap["wechatUniversalLink"] = widget.socialConfig.wechatUniversalLink();
+    configMap["qqAppId"] = widget.socialConfig.qqAppId();
+    configMap["qqAppKey"] = widget.socialConfig.qqAppKey();
     return configMap;
   }
 }
@@ -208,12 +225,6 @@ class _ShareWidgetState extends State<ShareWidget> {
 class _TextIconWidget extends StatelessWidget {
   /// 背景颜色
   final Color? backgroundColor;
-
-  /// 控件宽
-  final double? width;
-
-  /// 控件高
-  final double? height;
 
   /// 扩展数据
   final dynamic extra;
@@ -228,32 +239,34 @@ class _TextIconWidget extends StatelessWidget {
   final bool isVisible;
 
   const _TextIconWidget(
-      {this.backgroundColor,
-      this.width,
-      this.height,
-      this.extra,
-      this.itemClick,
-      required this.drawViews,
-      this.isVisible = true});
+      {this.backgroundColor, this.extra, this.itemClick, required this.drawViews, this.isVisible = true});
 
   @override
   Widget build(BuildContext context) {
     return Offstage(
-        offstage: !isVisible,
-        child: GestureDetector(
-          child: Container(
-            width: width ?? double.minPositive,
-            height: height ?? double.minPositive,
-            alignment: Alignment.center,
-            color: backgroundColor ?? Colors.transparent,
-            child: _buildViews(context),
+      offstage: !isVisible,
+      child: TextButton(
+        child: Container(
+          alignment: Alignment.center,
+          padding: const EdgeInsets.only(left: 16, top: 6, right: 16, bottom: 6),
+          decoration: const BoxDecoration(
+            color: Color(0x117F7F7F),
+            borderRadius: BorderRadius.all(Radius.circular(6)),
           ),
-          onTap: () {
-            if (itemClick != null) {
-              itemClick!(context, extra);
-            }
-          },
-        ));
+          child: _buildViews(context),
+        ),
+        onPressed: () {
+          if (itemClick != null) {
+            itemClick!(context, extra);
+          }
+        },
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.all(Colors.transparent),
+          minimumSize: MaterialStateProperty.all(Size.zero),
+          padding: MaterialStateProperty.all(EdgeInsets.zero),
+        ),
+      ),
+    );
   }
 
   Widget _buildViews(BuildContext context) {
